@@ -7,8 +7,8 @@
 #include <time.h>
 
 // 맵 및 게임 요소 정의 (수정된 부분)
-#define MAP_WIDTH 40  // 맵 너비를 40으로 변경
-#define MAP_HEIGHT 20
+//#define MAP_WIDTH 40  // 맵 너비를 40으로 변경
+//#define MAP_HEIGHT 20
 #define MAX_STAGES 2
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
@@ -55,6 +55,8 @@ void move_player(char input);
 void move_enemies();
 void check_collisions();
 int kbhit();
+void setMapMemory(int width, int height);
+void getMapSize();
 
 int main() {
     srand(time(NULL));
@@ -321,4 +323,26 @@ int kbhit() {
         return 1;
     }
     return 0;
+}
+
+void setMapMemory(int width, int height) {
+    int* MAP_WIDTH = (int*)malloc(sizeof(int*));
+    int* MAP_HEIGHT = (int*)malloc(sizeof(int*));
+}
+
+void getMapSize() {
+    int width;
+    int height = 0;
+    char buffer[50];
+
+    FILE *file = fopen("map.txt", "r");
+    if (!file) {
+        perror("map.txt 파일을 열 수 없습니다.");
+        exit(1);
+    }
+    while(fscanf(file,"%s",buffer) != EOF) height++;
+        width = sizeof(buffer) / sizeof(char);
+
+    setMapMemory(width, height);
+    fclose(file);
 }
