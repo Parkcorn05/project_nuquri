@@ -25,7 +25,11 @@ typedef struct {
 } Coin;
 
 // 전역 변수
-char map[MAX_STAGES][MAP_HEIGHT][MAP_WIDTH + 1];
+//char map[MAX_STAGES][MAP_HEIGHT][MAP_WIDTH + 1];
+int MAP_HEIGHT;
+int MAP_WIDTH;
+int*** map;
+
 int player_x, player_y;
 int stage = 0;
 int score = 0;
@@ -326,14 +330,22 @@ int kbhit() {
 }
 
 void setMapMemory(int width, int height) {
-    int* MAP_WIDTH = (int*)malloc(sizeof(int*));
-    int* MAP_HEIGHT = (int*)malloc(sizeof(int*));
+    int i =0, j = 0;
+    MAP_HEIGHT = height;
+    MAP_WIDTH = width;
+    map = (char***)malloc(sizeof(char**) * 2); //MAX_STAGE
+    for(i = 0; i < 2; i++){
+        map[i] = (char**)malloc(sizeof(char*) * height);  //MAP_HEIGHT
+        for(j = 0; j < MAP_HEIGHT; j++){
+            map[i][j] = (char*)malloc(sizeof(char) * width); //MAP_WIDTH
+        }
+    }
 }
 
 void getMapSize() {
     int width;
     int height = 0;
-    char buffer[50];
+    char buffer[45];
 
     FILE *file = fopen("map.txt", "r");
     if (!file) {
@@ -345,4 +357,15 @@ void getMapSize() {
 
     setMapMemory(width, height);
     fclose(file);
+}
+
+void mallocFree() {
+    int i = 0, j = 0;
+    for(i = 0; i < 2; i++){
+        for(j = 0; j < MAP_HEIGHT; j++){
+            free(map[i][j]);
+        }
+        free(map[i]);
+    }
+    free(map);
 }
