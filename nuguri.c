@@ -13,6 +13,12 @@
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
 
+#ifdef _WIN32
+    #include <windows.h>   // Beep() 함수 사용
+#else
+    #include <unistd.h>    // usleep 같은 거 이미 쓰고 있을 수도 있어서 (맥/리눅스)
+#endif
+
 // 구조체 정의
 typedef struct {
     int x, y;
@@ -61,6 +67,7 @@ void check_collisions();
 int kbhit();
 void setMapMemory(int width, int height);
 void getMapSize();
+void beep();
 
 int main() {
     srand(time(NULL));
@@ -302,6 +309,7 @@ void check_collisions() {
     }
     for (int i = 0; i < coin_count; i++) {
         if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
+            beep();
             coins[i].collected = 1;
             score += 20;
         }
@@ -369,3 +377,14 @@ void mallocFree() {
     }
     free(map);
 }
+
+void beep(void) {
+    #ifdef _WIN32
+        //윈도우
+        Beep(750, 100);
+    #else
+        //리눅스
+        printf("\a");
+        fflush(stdout);
+    #endif
+    }
