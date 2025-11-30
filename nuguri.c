@@ -69,11 +69,11 @@ void update_game(char input);
 void move_player(char input);
 void move_enemies();
 void check_collisions();
-
 void setMapMemory(int width, int height);
 void getMapSize();
+void readBanner(char* str);
+void opening();
 
-void clrscr();
 
 int main() {
     srand(time(NULL));
