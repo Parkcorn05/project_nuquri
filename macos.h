@@ -9,6 +9,8 @@
 
 #define LF "\r" 
 
+struct termios orig_termios;
+
 void clrscr() {
     printf("\x1b[2J\x1b[H");
     fflush(stdout);
