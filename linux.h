@@ -11,6 +11,11 @@
 
 struct termios orig_termios;
 
+void clrscr();
+void delay(int);
+int getch();
+int kbhit();
+
 void clrscr() {
     printf("\x1b[2J\x1b[H");
     fflush(stdout);
