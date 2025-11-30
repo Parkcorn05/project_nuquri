@@ -6,6 +6,13 @@
 #include <fcntl.h>
 #include <time.h>
 
+// 검토 필요 : -D 로 컴파일 시 운영체제 정의할 것. _WIN32 / linux / __MACH__ 사용
+// 그냥 운영체제에 따라 헤더 파일 만들어서 참조하는 식으로 시도해볼 것
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // 맵 및 게임 요소 정의 (수정된 부분)
 //#define MAP_WIDTH 40  // 맵 너비를 40으로 변경
 //#define MAP_HEIGHT 20
@@ -61,6 +68,8 @@ void check_collisions();
 int kbhit();
 void setMapMemory(int width, int height);
 void getMapSize();
+
+void clrscr();
 
 int main() {
     srand(time(NULL));
@@ -425,3 +434,25 @@ void mallocFree() {
     }
     free(map);
 }
+
+#ifdef _WIN32
+void clrscr() {
+    system("cls");
+}
+#endif
+
+#ifdef linux
+void clrscr() {
+    printf("\x1b[2J\x1b[H"); ////x1b : 이스케이프 시퀀스 시작 ,[2J : 전체화면 지우기, [H: 1,1로 이동
+    fflush(stdout);
+    return;
+}
+#endif
+
+#ifdef __MACH__
+void clrscr() {
+    printf("\x1b[2J\x1b[H"); ////x1b : 이스케이프 시퀀스 시작 ,[2J : 전체화면 지우기, [H: 1,1로 이동
+    fflush(stdout);
+    return;
+}
+#endif
