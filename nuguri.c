@@ -6,21 +6,18 @@
 #include <fcntl.h>
 #include <time.h>
 
-// 검토 필요 : -D 로 컴파일 시 운영체제 정의할 것. _WIN32 / linux / __MACH__ 사용
-// 그냥 운영체제에 따라 헤더 파일 만들어서 참조하는 식으로 시도해볼 것
-
 #ifdef _WIN32
-#include <windows.h>
+#include <window.h>
 #endif
 
 #ifdef linux
-#include <termios.h>
-#include <conio.h>
+#include <linux.h>
 #endif
 
 #ifdef __MACH__
-#include <termios.h>
+#include <macos.h>
 #endif
+
 
 // 맵 및 게임 요소 정의 (수정된 부분)
 //#define MAP_WIDTH 40  // 맵 너비를 40으로 변경
@@ -28,6 +25,11 @@
 #define MAX_STAGES 2
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
+
+#define UP 72
+#define DOWN 80
+#define LEFT 75
+#define RIGHT 77
 
 // 구조체 정의
 typedef struct {
@@ -74,7 +76,7 @@ void update_game(char input);
 void move_player(char input);
 void move_enemies();
 void check_collisions();
-int kbhit();
+
 void setMapMemory(int width, int height);
 void getMapSize();
 
@@ -99,10 +101,10 @@ int main() {
             if (c == '\x1b') {
                 getchar(); // '['
                 switch (getchar()) {
-                    case 'A': c = 'w'; break; // Up
-                    case 'B': c = 's'; break; // Down
-                    case 'C': c = 'd'; break; // Right
-                    case 'D': c = 'a'; break; // Left
+                    case 'A': c = UP; break; // Up
+                    case 'B': c = DOWN; break; // Down
+                    case 'C': c = RIGHT; break; // Right
+                    case 'D': c = LEFT; break; // Left
                 }
             }
         } else {
@@ -147,8 +149,6 @@ void enable_raw_mode() {
 }
 
 // 맵 파일 로드
-
-// #ifdef _WIN32
 void load_maps() {
     FILE *file = fopen("map.txt", "r");
     if (!file) {
@@ -165,67 +165,17 @@ void load_maps() {
         }
         if (r < MAP_HEIGHT) {
             // 윈도우즈에서는 "\r\n" 사용하는 경우가 많다고 하는데, os마다 고려해서 예외처리가 필요할 거 같습니다.
+            // 그래서 그냥 운영체제별로 개행 #define LF 로 해놓음, 문자열 형태 window: \r\n  macos: \r  linux: \n
             // 참고: https://teck10.tistory.com/296
-            line[strcspn(line, "\r\n")] = 0; ////strcspn(char* str1, char* str2) - str2에 들어있는 '문자들' 중에서 str1에 들어있는 '문자'와 일치하는 것이 있다면 첫번째로 일치하는 문자까지 읽어들인 수를 리턴
+            line[strcspn(line, LF)] = 0; ////strcspn(char* str1, char* str2) - str2에 들어있는 '문자들' 중에서 str1에 들어있는 '문자'와 일치하는 것이 있다면 첫번째로 일치하는 문자까지 읽어들인 수를 리턴
             // ㄴ 근데 이거 필요한 거 맞음???
             strncpy(map[s][r], line, MAP_WIDTH + 1); ////strncpy(char* str1, char* str2, int count) - string2의 count자를 string1에 복사
-            // 그냥 문자열 마지막 NULL 안줘도 되는 거 아님?? MAP_WIDTH까지밖에 탐색 안 하잖음
+            // 그냥 문자열 마지막 NULL 안줘도 되는 거 아님?? 어차피 MAP_WIDTH까지밖에 탐색(출력) 안 하잖음
             r++;
         }
     }
     fclose(file);
 }
-/*
-#elif LINUX //나중에 자세히 알아볼것
-void load_maps() {
-    FILE *file = fopen("map.txt", "r");
-    if (!file) {
-        perror("map.txt 파일을 열 수 없습니다.");
-        exit(1);
-    }
-    int s = 0, r = 0;
-    char line[MAP_WIDTH + 2]; // 버퍼 크기는 MAP_WIDTH에 따라 자동 조절됨
-    while (s < MAX_STAGES && fgets(line, sizeof(line), file)) {
-        if ((line[0] == '\n' || line[0] == '\r') && r > 0) {
-            s++;
-            r = 0;
-            continue;
-        }
-        if (r < MAP_HEIGHT) {
-            line[strcspn(line, "\n")] = 0; ////strcspn(char* str1, char* str2) - str2에 들어있는 '문자들' 중에서 str1에 들어있는 '문자'와 일치하는 것이 있다면 첫번째로 일치하는 문자까지 읽어들인 수를 리턴
-            strncpy(map[s][r], line, MAP_WIDTH + 1); ////strncpy(char* str1, char* str2, int count) - string2의 count자를 string1에 복사
-            r++;
-        }
-    }
-    fclose(file);
-}
-
-#else //mac OS
-void load_maps() {
-    FILE *file = fopen("map.txt", "r");
-    if (!file) {
-        perror("map.txt 파일을 열 수 없습니다.");
-        exit(1);
-    }
-    int s = 0, r = 0;
-    char line[MAP_WIDTH + 2]; // 버퍼 크기는 MAP_WIDTH에 따라 자동 조절됨
-    while (s < MAX_STAGES && fgets(line, sizeof(line), file)) {
-        if ((line[0] == '\n' || line[0] == '\r') && r > 0) {
-            s++;
-            r = 0;
-            continue;
-        }
-        if (r < MAP_HEIGHT) {
-            line[strcspn(line, "\r")] = 0; ////strcspn(char* str1, char* str2) - str2에 들어있는 '문자들' 중에서 str1에 들어있는 '문자'와 일치하는 것이 있다면 첫번째로 일치하는 문자까지 읽어들인 수를 리턴
-            strncpy(map[s][r], line, MAP_WIDTH + 1); ////strncpy(char* str1, char* str2, int count) - string2의 count자를 string1에 복사
-            r++;
-        }
-    }
-    fclose(file);
-}
-
-#endif
-*/
 
 // 현재 스테이지 초기화
 void init_stage() {
@@ -252,7 +202,7 @@ void init_stage() {
 
 // 게임 화면 그리기
 void draw_game() {
-    printf("\x1b[2J\x1b[H"); ////x1b : 이스케이프 시퀀스 시작 ,[2J : 전체화면 지우기, [H: 1,1로 이동
+    clrscr();
     printf("Stage: %d | Score: %d\n", stage + 1, score);
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
 
@@ -304,10 +254,10 @@ void move_player(char input) {
     on_ladder = (current_tile == 'H');
 
     switch (input) {
-        case 'a': next_x--; break;
-        case 'd': next_x++; break;
-        case 'w': if (on_ladder) next_y--; break;
-        case 's': if (on_ladder && (player_y + 1 < MAP_HEIGHT) && map[stage][player_y + 1][player_x] != '#') next_y++; break;
+        case LEFT:   next_x--; break;
+        case RIGHT:  next_x++; break;
+        case UP:     if (on_ladder) next_y--; break;
+        case DOWN:   if (on_ladder && (player_y + 1 < MAP_HEIGHT) && map[stage][player_y + 1][player_x] != '#') next_y++; break;
         case ' ':
             if (!is_jumping && (floor_tile == '#' || on_ladder)) {
                 is_jumping = 1;
@@ -382,27 +332,6 @@ void check_collisions() {
     }
 }
 
-// 비동기 키보드 입력 확인
-int kbhit() {
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-    ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-    if(ch != EOF) {
-        ungetc(ch, stdin);
-        return 1;
-    }
-    return 0;
-}
-
 void setMapMemory(int width, int height) {
     int i =0, j = 0;
     MAP_HEIGHT = height;
@@ -443,25 +372,3 @@ void mallocFree() {
     }
     free(map);
 }
-
-#ifdef _WIN32
-void clrscr() {
-    system("cls");
-}
-#endif
-
-#ifdef linux
-void clrscr() {
-    printf("\x1b[2J\x1b[H"); ////x1b : 이스케이프 시퀀스 시작 ,[2J : 전체화면 지우기, [H: 1,1로 이동
-    fflush(stdout);
-    return;
-}
-#endif
-
-#ifdef __MACH__
-void clrscr() {
-    printf("\x1b[2J\x1b[H"); ////x1b : 이스케이프 시퀀스 시작 ,[2J : 전체화면 지우기, [H: 1,1로 이동
-    fflush(stdout);
-    return;
-}
-#endif
