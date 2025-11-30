@@ -129,6 +129,8 @@ void enable_raw_mode() {
 }
 
 // 맵 파일 로드
+
+// #ifdef _WIN32
 void load_maps() {
     FILE *file = fopen("map.txt", "r");
     if (!file) {
@@ -144,7 +146,35 @@ void load_maps() {
             continue;
         }
         if (r < MAP_HEIGHT) {
-            line[strcspn(line, "\n\r")] = 0; ////strcspn(char* str1, char* str2) - str2에 들어있는 '문자들' 중에서 str1에 들어있는 '문자'와 일치하는 것이 있다면 첫번째로 일치하는 문자까지 읽어들인 수를 리턴
+            // 윈도우즈에서는 "\r\n" 사용하는 경우가 많다고 하는데, os마다 고려해서 예외처리가 필요할 거 같습니다.
+            // 참고: https://teck10.tistory.com/296
+            line[strcspn(line, "\r\n")] = 0; ////strcspn(char* str1, char* str2) - str2에 들어있는 '문자들' 중에서 str1에 들어있는 '문자'와 일치하는 것이 있다면 첫번째로 일치하는 문자까지 읽어들인 수를 리턴
+            // ㄴ 근데 이거 필요한 거 맞음???
+            strncpy(map[s][r], line, MAP_WIDTH + 1); ////strncpy(char* str1, char* str2, int count) - string2의 count자를 string1에 복사
+            // 그냥 문자열 마지막 NULL 안줘도 되는 거 아님?? MAP_WIDTH까지밖에 탐색 안 하잖음
+            r++;
+        }
+    }
+    fclose(file);
+}
+/*
+#elif LINUX //나중에 자세히 알아볼것
+void load_maps() {
+    FILE *file = fopen("map.txt", "r");
+    if (!file) {
+        perror("map.txt 파일을 열 수 없습니다.");
+        exit(1);
+    }
+    int s = 0, r = 0;
+    char line[MAP_WIDTH + 2]; // 버퍼 크기는 MAP_WIDTH에 따라 자동 조절됨
+    while (s < MAX_STAGES && fgets(line, sizeof(line), file)) {
+        if ((line[0] == '\n' || line[0] == '\r') && r > 0) {
+            s++;
+            r = 0;
+            continue;
+        }
+        if (r < MAP_HEIGHT) {
+            line[strcspn(line, "\n")] = 0; ////strcspn(char* str1, char* str2) - str2에 들어있는 '문자들' 중에서 str1에 들어있는 '문자'와 일치하는 것이 있다면 첫번째로 일치하는 문자까지 읽어들인 수를 리턴
             strncpy(map[s][r], line, MAP_WIDTH + 1); ////strncpy(char* str1, char* str2, int count) - string2의 count자를 string1에 복사
             r++;
         }
@@ -152,6 +182,32 @@ void load_maps() {
     fclose(file);
 }
 
+#else //mac OS
+void load_maps() {
+    FILE *file = fopen("map.txt", "r");
+    if (!file) {
+        perror("map.txt 파일을 열 수 없습니다.");
+        exit(1);
+    }
+    int s = 0, r = 0;
+    char line[MAP_WIDTH + 2]; // 버퍼 크기는 MAP_WIDTH에 따라 자동 조절됨
+    while (s < MAX_STAGES && fgets(line, sizeof(line), file)) {
+        if ((line[0] == '\n' || line[0] == '\r') && r > 0) {
+            s++;
+            r = 0;
+            continue;
+        }
+        if (r < MAP_HEIGHT) {
+            line[strcspn(line, "\r")] = 0; ////strcspn(char* str1, char* str2) - str2에 들어있는 '문자들' 중에서 str1에 들어있는 '문자'와 일치하는 것이 있다면 첫번째로 일치하는 문자까지 읽어들인 수를 리턴
+            strncpy(map[s][r], line, MAP_WIDTH + 1); ////strncpy(char* str1, char* str2, int count) - string2의 count자를 string1에 복사
+            r++;
+        }
+    }
+    fclose(file);
+}
+
+#endif
+*/
 
 // 현재 스테이지 초기화
 void init_stage() {
