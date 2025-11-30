@@ -12,3 +12,8 @@ void clrscr() {
     system("cls");
 	return;
 }
+
+void delay(int t){
+	Sleep(t);
+	return;
+}
