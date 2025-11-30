@@ -13,6 +13,7 @@ void clrscr() {
 	return;
 }
 
+// 밀리초 단위로 동작
 void delay(int t){
 	Sleep(t);
 	return;
