@@ -9,7 +9,7 @@
 // 맵 및 게임 요소 정의 (수정된 부분)
 //#define MAP_WIDTH 40  // 맵 너비를 40으로 변경
 //#define MAP_HEIGHT 20
-#define MAX_STAGES 2
+//#define MAX_STAGES 2
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
 
@@ -28,7 +28,10 @@ typedef struct {
 //char map[MAX_STAGES][MAP_HEIGHT][MAP_WIDTH + 1];
 int MAP_HEIGHT;
 int MAP_WIDTH;
-int*** map;
+int MAX_STAGES;
+char*** map;
+int* TEMP_HEIGHT;
+int* TEMP_WIDTH;
 
 int player_x, player_y;
 int stage = 0;
@@ -60,13 +63,19 @@ void move_enemies();
 void check_collisions();
 int kbhit();
 void setMapMemory(int s, int width, int height);
-void getMapSize(int s);
-void mallocFree(int s);
+void setStage();
+void getMapSize();
+void mallocFree();
 
 int main() {
     srand(time(NULL));
     enable_raw_mode();
-    getMapSize(stage);
+
+    setStage();
+    getMapSize();
+    MAP_HEIGHT = TEMP_HEIGHT[stage];
+    MAP_WIDTH = TEMP_WIDTH[stage];
+
     load_maps();
     init_stage();
 
@@ -334,10 +343,39 @@ int kbhit() {
     return 0;
 }
 
+void setStage() {
+    char temp;
+    int check_stage = 0, sum_stage = 1;
+
+    FILE *file = fopen("map.txt", "r");
+    if (!file) {
+        perror("map.txt 파일을 열 수 없습니다.");
+        exit(1);
+    }
+    while (fscanf(file,"%c",&temp)) {
+        switch(temp) {
+            case '\n':
+                if(check_stage == 1) {
+                    sum_stage++;
+                }
+                check_stage = 1;
+                break;
+            default:
+                check_stage = 0;
+                break;
+        }
+    }
+    MAX_STAGES = sum_stage;
+    map = (char***)malloc(sizeof(char**) * MAX_STAGES);
+    TEMP_HEIGHT = (int*)malloc(sizeof(int) * MAX_STAGES);
+    TEMP_WIDTH = (int*)malloc(sizeof(int) * MAX_STAGES);
+    fclose(file);
+}
+
 void setMapMemory(int s, int width, int height) {
     int i = 0;
-    MAP_HEIGHT = height;
-    MAP_WIDTH = width;
+    TEMP_HEIGHT[s] = height;
+    TEMP_WIDTH[s] = width;
         map[s] = (char**)malloc(sizeof(char*) * height);  //MAP_HEIGHT
         for(i = 0; i < MAP_HEIGHT; i++){
             map[s][i] = (char*)malloc(sizeof(char) * width); //MAP_WIDTH
@@ -345,7 +383,7 @@ void setMapMemory(int s, int width, int height) {
     }
 
 
-void getMapSize(int s) {
+void getMapSize() {
     int width = 0, height = 0;
     int temp_stage = 0 , check_stage = 0;
     char temp;
@@ -355,26 +393,16 @@ void getMapSize(int s) {
         perror("map.txt 파일을 열 수 없습니다.");
         exit(1);
     }
-    while(fscanf(file,"%c",&temp) != EOF && temp_stage != stage){
+    while(fscanf(file,"%c",&temp) != EOF && temp_stage != s){
         switch(temp){
             case '\n':
                 if(check_stage == 1){
+                    setMapMemory(temp_stage, width, height);
+                    height = 0;
                     temp_stage++;
+                    continue;
                 }
                 check_stage = 1;
-                break;
-            default:
-                check_stage = 0;
-                continue;
-        }
-    }
-    check_stage = 0;
-    while(fscanf(file,"%c",&temp) != EOF){
-        switch(temp){
-            case'\n':
-                if(check_stage == 1){
-                    goto result;
-                }
                 height++;
                 width = 0;
                 break;
@@ -384,16 +412,19 @@ void getMapSize(int s) {
                 break;
         }
     }
-    result: 
-    setMapMemory(s, width, height);
+    check_stage = 0;
     fclose(file);
 }
 
 void mallocFree(int s) {
-    int i = 0;
-
-    for(i= 0; i < MAP_HEIGHT; i++){
-        free(map[s][i]);
+    int i,j;
+    free(TEMP_HEIGHT);
+    free(TEMP_WIDTH);
+    for(i= 0; i < MAX_STAGES; i++){
+        for(j = 0; j < MAP_HEIGHT; j++){
+            free(map[i][j]);
+        }
+        free(map[i]);
     }
-    free(map[s]);
+    free(map);
 }
