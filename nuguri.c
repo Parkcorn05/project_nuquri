@@ -13,6 +13,7 @@
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
 
+
 // 구조체 정의
 typedef struct {
     int x, y;
@@ -29,6 +30,15 @@ typedef struct {
 int MAP_HEIGHT;
 int MAP_WIDTH;
 int*** map;
+
+#define MAX_HP 3   // 기본 최대 HP
+
+int player_x, player_y;
+int stage = 0;
+int score = 0;
+
+int hp = MAX_HP; // 플레이어 체력(초기값은 MAX_HP)
+
 
 int player_x, player_y;
 int stage = 0;
@@ -369,3 +379,4 @@ void mallocFree() {
     }
     free(map);
 }
+
