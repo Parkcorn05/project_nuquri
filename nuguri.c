@@ -13,6 +13,13 @@
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
 
+#ifdef _WIN32
+    #include <windows.h>   // Beep() 함수 사용
+#else
+    #include <unistd.h>    // usleep 같은 거 이미 쓰고 있을 수도 있어서 (맥/리눅스)
+#endif
+
+
 // 구조체 정의
 typedef struct {
     int x, y;
@@ -32,6 +39,15 @@ int MAX_STAGES;
 char*** map;
 int* TEMP_HEIGHT;
 int* TEMP_WIDTH;
+
+#define MAX_HP 3   // 기본 최대 HP
+
+int player_x, player_y;
+int stage = 0;
+int score = 0;
+
+int hp = MAX_HP; // 플레이어 체력(초기값은 MAX_HP)
+
 
 int player_x, player_y;
 int stage = 0;
@@ -66,6 +82,9 @@ void setMapMemory(int s, int width, int height);
 void setStage();
 void getMapSize();
 void mallocFree();
+
+void beep();
+
 
 int main() {
     srand(time(NULL));
@@ -194,6 +213,7 @@ void init_stage() {
 void draw_game() {
     printf("\x1b[2J\x1b[H"); ////x1b : 이스케이프 시퀀스 시작 ,[2J : 전체화면 지우기, [H: 1,1로 이동
     printf("Stage: %d | Score: %d\n", stage + 1, score);
+    printf("HP: %d\n", hp); // 플레이어 체력 표시
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
 
     char display_map[MAP_HEIGHT][MAP_WIDTH + 1];
@@ -308,14 +328,30 @@ void move_enemies() {
 // 충돌 감지 로직
 void check_collisions() {
     for (int i = 0; i < enemy_count; i++) {
-        if (player_x == enemies[i].x && player_y == enemies[i].y) {
-            score = (score > 50) ? score - 50 : 0;
+    if (player_x == enemies[i].x && player_y == enemies[i].y) {
+        // 적과 충돌: 체력 감소
+        hp--;
+        // 점수 패널티는 유지(원하면 제거 가능)
+        score = (score > 50) ? score - 50 : 0;
+
+        if (hp <= 0) {
+            // 게임 오버 처리: 화면 정리 후 종료
+            printf("\x1b[2J\x1b[H");
+            printf("게임 오버! HP가 모두 소진되었습니다.\n");
+            printf("최종 점수: %d\n", score);
+            disable_raw_mode();
+            exit(0);
+        } else {
+            // 체력이 남아있으면 현재 스테이지 재시작 (플레이어 위치 초기화)
             init_stage();
             return;
         }
     }
+}
+
     for (int i = 0; i < coin_count; i++) {
         if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
+            beep();
             coins[i].collected = 1;
             score += 20;
         }
@@ -428,3 +464,16 @@ void mallocFree(int s) {
     }
     free(map);
 }
+
+
+void beep(void) {
+    #ifdef _WIN32
+        //윈도우
+        Beep(750, 100);
+    #else
+        //리눅스
+        printf("\a");
+        fflush(stdout);
+    #endif
+    }
+
