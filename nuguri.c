@@ -190,6 +190,7 @@ void init_stage() {
 void draw_game() {
     printf("\x1b[2J\x1b[H"); ////x1b : 이스케이프 시퀀스 시작 ,[2J : 전체화면 지우기, [H: 1,1로 이동
     printf("Stage: %d | Score: %d\n", stage + 1, score);
+    printf("HP: %d\n", hp); // 플레이어 체력 표시
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
 
     char display_map[MAP_HEIGHT][MAP_WIDTH + 1];
