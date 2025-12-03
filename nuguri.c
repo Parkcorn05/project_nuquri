@@ -41,9 +41,9 @@ typedef struct {
 
 
 // 전역 변수
-int MAX_STAGES = 0;
-int MAP_WIDTH[];
-int MAP_HEIGHT[];
+int MAX_STAGES = 1;
+int* MAP_WIDTH;
+int* MAP_HEIGHT;
 // TEMP_WIDTH,HEIGHT 삭제 (MAP_WIDTH,HEIGHT 로 통합)
 char*** map;
 
@@ -116,9 +116,9 @@ int main() {
         draw_game();
 
         if (map[stage][player_y][player_x] == 'E') {
-            mallocFree(stage);
+            mallocFree();
             stage++;
-            getMapSize(stage);
+            getMapSize();
             load_maps();
             score += 100;
             if (stage < MAX_STAGES) {
@@ -171,7 +171,7 @@ void load_maps() {
 	if(DEBUGGING) delay(500);
 }
 
-// 현재 스테이지 초기화
+// 현재 스테이지 초기화 251203 수정 완
 void init_stage() {
 	if(DEBUGGING) DBG("init_stage(); started");
 	if(DEBUGGING) delay(30);
@@ -181,8 +181,8 @@ void init_stage() {
     is_jumping = 0;
     velocity_y = 0;
 
-    for (int y = 0; y < MAP_HEIGHT; y++) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
+    for (int y = 0; y < MAP_HEIGHT[stage]; y++) {
+        for (int x = 0; x < MAP_WIDTH[stage]; x++) {
             char cell = map[stage][y][x];
             if (cell == 'S') {
                 player_x = x;
@@ -274,7 +274,7 @@ void move_player(char input) {
         case LEFT:   next_x--; break;
         case RIGHT:  next_x++; break;
         case UP:     if (on_ladder) next_y--; break;
-        case DOWN:   if (on_ladder && (player_y + 1 < MAP_HEIGH[stage]T) && map[stage][player_y + 1][player_x] != '#') next_y++; break;
+        case DOWN:   if (on_ladder && (player_y + 1 < MAP_HEIGHT[stage]) && map[stage][player_y + 1][player_x] != '#') next_y++; break;
         case ' ': // 점프
             if (!is_jumping && (floor_tile == '#' || on_ladder)) {
                 is_jumping = 1;
@@ -399,7 +399,7 @@ void setMapMemory() {
     map = (char***)malloc(sizeof(char**) * MAX_STAGES); // MAX_STAGES
     for(i = 0; i < MAX_STAGES; i++){ 
         map[i] = (char**)malloc(sizeof(char*) * MAP_HEIGHT[i]);  //MAP_HEIGHT
-        for(j = 0; j < MAP_HEIGHT; j++){
+        for(j = 0; j < MAP_HEIGHT[i]; j++){
             map[i][j] = (char*)malloc(sizeof(char) * MAP_WIDTH[i]); //MAP_WIDTH
         }
     }
@@ -429,9 +429,9 @@ void getMapSize() {
 	if(DEBUGGING) delay(30);
 	
 	// MAP_WIDTH, MAP_HEIGHT 에 동적 메모리 할당
-	MAP_HEIGHT = (int*)malloc(sizeof(int) * MAX_STAGES);
-    MAP_WIDTH = (int*)malloc(sizeof(int) * MAX_STAGES);
-	
+	MAP_HEIGHT = (int*)malloc(sizeof(int)*MAX_STAGES);
+	MAP_WIDTH = (int*)malloc(sizeof(int)*MAX_STAGES);
+
 	// 같은 file 다시 불러오기
 	file = fopen("map.txt", "r");
     if (!file) {
@@ -449,7 +449,8 @@ void getMapSize() {
 			s++;
 		}else{
 			height++;
-			if !(MAP_WIDTH[s]) MAP_WIDTH[s] = strlen(buffer);
+			MAP_WIDTH[s] = strlen(buffer)-1;
+			// 개행 문자 고려해 가로 길이 -1
 		}
 	}
 	MAP_WIDTH[s] = strlen(buffer);
@@ -462,7 +463,7 @@ void getMapSize() {
 	
 	if(DEBUGGING){
 		s = 0;
-		while(s < MAX_STAGES) printf("///in stage %d: MAP_WIDTH: %d, MAP_HEIGHT: %d   ", s, MAP_WIDTH[s], MAP_HEIGHT[s]);
+		while(s < MAX_STAGES) printf("///in stage %d: MAP_WIDTH: %d, MAP_HEIGHT: %d   ", s++, MAP_WIDTH[s], MAP_HEIGHT[s]);
 		DBG("getMapSize(); ended");
 		delay(500);
 	}
