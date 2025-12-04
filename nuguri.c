@@ -422,7 +422,8 @@ void setMapMemory() {
     for(i = 0; i < MAX_STAGES; i++){ 
         map[i] = (char**)malloc(sizeof(char*) * MAP_HEIGHT[i]);  //MAP_HEIGHT
         for(j = 0; j < MAP_HEIGHT[i]; j++){
-            map[i][j] = (char*)malloc(sizeof(char) * MAP_WIDTH[i]); //MAP_WIDTH
+            map[i][j] = (char*)malloc(sizeof(char) * (MAP_WIDTH[i] + 1));  // 널 문자 공간 포함
+            map[i][j][0] = '\0';  //MAP_WIDTH
         }
     }
 	
