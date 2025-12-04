@@ -79,14 +79,12 @@ void getMapSize();
 void readBanner(char* str, int height);
 void opening();
 void mallocFree();
-void beep();
 void DBG(char* str); //debugging print
-
-// 251203 setStage() 함수 삭제 (getMapSize에서 일괄처리)
 
 
 // 251203 수정 완
 int main() {
+	
     srand(time(NULL));
     enable_raw_mode();
 	
@@ -99,7 +97,6 @@ int main() {
     int game_over = 0;
 	
     while (!game_over && stage < MAX_STAGES) {
-		
         if (kbhit()) {
             c = getch();
             if (c == 'q') {
@@ -109,10 +106,12 @@ int main() {
             if (c == -32) { // 화살표 입력 받기위한 (화살표 입력하면 -32가 먼저 입력된 후 72,80 등 고유 숫자가 입력됨.)
                 c = getch();
             }
+			while (kbhit()) { getch(); }
         } else {
             c = '\0';
         }
         update_game(c);
+		if(DEBUGGING) delay(1000);
         draw_game();
 
         if (map[stage][player_y][player_x] == 'E') {
@@ -139,7 +138,6 @@ int main() {
 // 맵 파일 로드 (251203 수정 완)
 void load_maps() {
 	if(DEBUGGING) DBG("load_maps() started");
-	if(DEBUGGING) delay(30);
 	
     FILE *file = fopen("map.txt", "r");
     if (!file) {
@@ -151,13 +149,11 @@ void load_maps() {
     char line[100]; // getMapSize()에서 받는 최대 버퍼 크기와 일치화
     while (s < MAX_STAGES && fgets(line, sizeof(line), file)) {
 		//if(DEBUGGING) DBG("in while");
-		//if(DEBUGGING) delay(30);
 		
         if ((line[0] == '\n') && r > 0) { // map.txt 파일은 LF만 사용하므로, \n만 확인해도 됨.
             s++;
             r = 0;
 			if(DEBUGGING) DBG("in load_maps() stage plused");
-			if(DEBUGGING) delay(30);
             continue;
         }else if (r < MAP_HEIGHT[s]) {
             strncpy(map[s][r], line, MAP_WIDTH[s]);
@@ -168,13 +164,11 @@ void load_maps() {
     fclose(file);
 	
 	if(DEBUGGING) DBG("load_maps() ended");
-	if(DEBUGGING) delay(500);
 }
 
 // 현재 스테이지 초기화 251203 수정 완
 void init_stage() {
 	if(DEBUGGING) DBG("init_stage(); started");
-	if(DEBUGGING) delay(30);
 	
     enemy_count = 0;
     coin_count = 0;
@@ -196,13 +190,11 @@ void init_stage() {
         }
     }
 	if(DEBUGGING) DBG("init_stage(); ended");
-	if(DEBUGGING) delay(500);
 }
 
 // 게임 화면 그리기 (251203 수정 완)
 void draw_game() {
 	if(DEBUGGING) DBG("draw_game(); started");
-	if(DEBUGGING) delay(30);
     clrscr();
     printf("Stage: %d | Score: %d\n", stage + 1, score);
     printf("HP: %d\n", hp); // 플레이어 체력 표시
@@ -231,35 +223,49 @@ void draw_game() {
     }
 
     display_map[player_y][player_x] = 'P';
-
+	
+	// line 229~238 251204 수정본
+	
+	// draw 신규 로직) 기존 한 문자씩 draw 하는것과 다르게 
+	char buffer[MAP_WIDTH[stage]+1];
+	buffer[MAP_WIDTH[stage]] = '\0';
+	
+	for (int y = 0; y < MAP_HEIGHT[stage]; y++) {
+        for(int x = 0; x < MAP_WIDTH[stage]; x++){
+			buffer[x] = display_map[y][x];
+        }
+		printf("%s\n", buffer);
+    }
+	
+	// 0.05초마다 한번씩 연산하게 변경
+	delay(50);
+	
+	/* 기존 코드
     for (int y = 0; y < MAP_HEIGHT[stage]; y++) {
         for(int x = 0; x < MAP_WIDTH[stage]; x++){
             printf("%c", display_map[y][x]);
         }
         printf("\n");
     }
+	*/
 	
 	if(DEBUGGING) DBG("draw_game(); ended");
-	if(DEBUGGING) delay(500);
 }
 
 // 게임 상태 업데이트
 void update_game(char input) {
     if(DEBUGGING) DBG("update_game(); started");
-	if(DEBUGGING) delay(30);
 	
 	move_player(input);
     move_enemies();
     check_collisions();
 	
 	if(DEBUGGING) DBG("update_game(); ended");
-	if(DEBUGGING) delay(500);
 }
 
 // 플레이어 이동 로직 (251203 수정 완)
 void move_player(char input) {
 	if(DEBUGGING) DBG("move_player(); started");
-	if(DEBUGGING) delay(30);
 	
     int next_x = player_x, next_y = player_y;
     char floor_tile = (player_y + 1 < MAP_HEIGHT[stage]) ? map[stage][player_y + 1][player_x] : '#';
@@ -298,21 +304,31 @@ void move_player(char input) {
         if (is_jumping) { // 점프중에~
             next_y = player_y + velocity_y;
 			
-            if(next_y <= 0) next_y = 1; // 올라가다 천장을 뚫거나 박히지 않게 예외처리
-            velocity_y++; // 중력가속도(클수록 아래로)
+			if(next_y <= 0) next_y = 1; // 올라가다 천장을 뚫거나 박히지 않게 예외처리
 			
-			if (velocity_y > 0){ // 가속도가 아래로 향할 때 
+			if (velocity_y < 0){ // 가속도가 위로 향할 때;
+				int layer = 0;
+				while (layer < player_y - next_y + 1){ // 현재 위치에서 목표 위치 사이에 블록이 있는지 확인
+					if(DEBUGGING) DBG("in while");
+					if(DEBUGGING) printf("at layer %d ", layer);
+					if (map[stage][player_y-(layer)][player_x] == '#'){
+						if(DEBUGGING) printf("land detected   ");
+						next_y = player_y-(layer)+1;
+						velocity_y = 0;
+						break;
+					}
+					layer++;
+				}
+			}else if (velocity_y > 0){ // 가속도가 아래로 향할 때 
 				if (next_y >= MAP_HEIGHT[stage]) next_y = MAP_HEIGHT[stage]-2; // 행선지가 맵 끝보다 아래로 향할 때 (수정됨)
 				else{ // 행선지가 맵 안이면
 					int layer = 0;
-					while (layer < next_y - player_y){// 현재 위치에서 목표 위치 사이에 블록이 있는지 확인
+					while (layer < next_y - player_y+1){// 현재 위치에서 목표 위치 사이에 블록이 있는지 확인
 						if(DEBUGGING) DBG("in while");
 						if(DEBUGGING) printf("at layer %d ", layer);
-						if(DEBUGGING) delay(30);
-						if (map[stage][player_y+layer][player_x] == '#'){
+						if (map[stage][player_y+(layer)][player_x] == '#'){
 							if(DEBUGGING) printf("land detected   ");
-							if(DEBUGGING) delay(30);
-							next_y = player_y+layer -1;
+							next_y = player_y+(layer)-1;
 							break;
 						}
 						layer++;
@@ -320,6 +336,8 @@ void move_player(char input) {
 				}
 			}
 			
+			// velocity_y 관련 계산이 끝난 후 값을 수정하도록 변경 251204
+			velocity_y++; // 중력가속도(클수록 아래로)
 			player_y = next_y;
 			
 			if ((player_y + 1 > MAP_HEIGHT[stage]) || map[stage][player_y + 1][player_x] == '#') { // 이미 땅에 닿아있을 때
@@ -342,34 +360,27 @@ void move_player(char input) {
     if (player_y >= MAP_HEIGHT[stage]) init_stage();
 	
 	if(DEBUGGING) DBG("move_player(); ended");
-	if(DEBUGGING) delay(500);
 }
 
 // 적 이동 로직 (251203 수정 완)
 void move_enemies() {
 	if(DEBUGGING) DBG("move_enemies(); started");
-	if(DEBUGGING) delay(30);
 	
     for (int i = 0; i < enemy_count; i++) {
         int next_x = enemies[i].x + enemies[i].dir;
         if (next_x < 0 || next_x >= MAP_WIDTH[stage] || map[stage][enemies[i].y][next_x] == '#' || (enemies[i].y + 1 < MAP_HEIGHT[stage] && map[stage][enemies[i].y + 1][next_x] == ' ')) {
             enemies[i].dir *= -1;
+			next_x = enemies[i].x + enemies[i].dir; // 추가
 		}
         enemies[i].x = next_x; // 좌우 끝칸에서 한 번 멈추지 않게 수정
-		/* 기존 코드
-        } else {
-            enemies[i].x = next_x;
-        }*/
     }
 	
 	if(DEBUGGING) DBG("move_enemies(); ended");
-	if(DEBUGGING) delay(500);
 }
 
 // 충돌 감지 로직 (251203 테스트 완)
 void check_collisions() {
 	if(DEBUGGING) DBG("check_collisions(); started");
-	if(DEBUGGING) delay(30);
 	
     for (int i = 0; i < enemy_count; i++) {
     if (player_x == enemies[i].x && player_y == enemies[i].y) {
@@ -402,7 +413,6 @@ void check_collisions() {
     }
 	
 	if(DEBUGGING) DBG("check_collisions(); ended");
-	if(DEBUGGING) delay(500);
 }
 
 // setStage() 함수 삭제 (getMapSize에서 일괄처리)
@@ -410,7 +420,6 @@ void check_collisions() {
 // 맵 전역변수에 동적 메모리 할당 (251203 수정 완)
 void setMapMemory() {
 	if(DEBUGGING) DBG("setMapMemory(); started");
-	if(DEBUGGING) delay(30);
 	
     int i =0, j = 0;
 	
@@ -424,13 +433,11 @@ void setMapMemory() {
     }
 	
 	if(DEBUGGING) DBG("setMapMemory(); ended");
-	if(DEBUGGING) delay(500);
 }
 
 // 맵 사이즈 계산 및 동적메모리 할당 (251203 수정 완(컴파일 테스트 필요))
 void getMapSize() {
 	if(DEBUGGING) DBG("getMapSize(); started");
-	if(DEBUGGING) delay(30);
 	
     char buffer[100];
 
@@ -445,7 +452,6 @@ void getMapSize() {
 		if (buffer[0] == '\n') MAX_STAGES++;
 	
 	if(DEBUGGING) printf("///MAX_STAGES: %d   ", MAX_STAGES);
-	if(DEBUGGING) delay(30);
 	
 	// MAP_WIDTH, MAP_HEIGHT 에 동적 메모리 할당
 	MAP_HEIGHT = (int*)malloc(sizeof(int)*MAX_STAGES);
@@ -593,8 +599,5 @@ void DBG(char* str){
 	return;
 }
 
-// 비프음 출력 (printf(\a)로 통일(모든 os에서 동작함.))
-void beep() {
-    printf("\a");
-    fflush(stdout);
-}
+
+// 기존 비프음 출력 함수 분리 및 헤더 파일로 이전 (기존 조장이 작업한 부분 복구, OS별 분리)
