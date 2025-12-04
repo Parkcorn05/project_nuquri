@@ -203,6 +203,7 @@ void init_stage() {
 void draw_game() {
 	if(DEBUGGING) DBG("draw_game(); started");
 	if(DEBUGGING) delay(30);
+    delay(150);  //속도 조절
     clrscr();
     printf("Stage: %d | Score: %d\n", stage + 1, score);
     printf("HP: %d\n", hp); // 플레이어 체력 표시
