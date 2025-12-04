@@ -552,8 +552,10 @@ void opening(){
 		gotoxy(0,14);
 		
 		c = getch();
-		if (c==-32){ //화살표 입력을 받았을 때
+		if (c==isArrow){ //화살표 입력을 받았을 때
+            if (braket == '[') getch(); // linux, macos 에서의 입력 관련
 			c = getch();
+			
 			if (c==LEFT && select!=0) {select--; gotoxy(x,14); printf(" ");}
 			else if (c==RIGHT && select!=1) {select++; gotoxy(x,14); printf(" ");}
 		} else if (c=='d'){ // 디버깅 모드 진입
