@@ -10,12 +10,22 @@ window.h : 윈도우 운영체제에서 참조하기 위해 만든 헤더파일,
 
 #define LF "\r\n"
 
+// 방향키 판단을 위한 define (isArrow catch 한 이후 판단)
+#define isArrow -32
+
+#define UP 72
+#define DOWN 80
+#define RIGHT 77
+#define LEFT 75
+
+
 void clrscr(); // 화면 클리어 함수
 void delay(int t); // 마이크로초단위 sleep 함수
 void disable_raw_mode(); // main 에서 쓰는관계로 일단 빈 코드로 구현
 void enable_raw_mode(); // 22
 void gotoxy(int x, int y); // 커서위치를 이동하는 함수
 void beep(); // 비프음을 출력하는 함수
+void ifWinSetUTF8(); // 윈도우 환경이면 UTF8을 사용하도록 하는 함수
 
 void clrscr() {
     system("cls"); // windows.h 내부 함수 사용하여 구현
@@ -53,4 +63,10 @@ void enable_raw_mode(){
 
 void beep(){
 	Beep(750, 100);
+}
+
+void ifWinSetUTF8(){
+	SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+	return;
 }
