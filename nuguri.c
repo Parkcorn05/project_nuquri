@@ -370,7 +370,7 @@ void move_enemies() {
 			next_x = enemies[i].x + enemies[i].dir; // 추가
 		}
 
-        enemies[i].x = next_x; // 좌우 끝칸에서 한 번 멈추지 않게 수정 //12.4 몬스터가 벽 뚫음 (임시 제거) // 벽 안뚫잖아 씹련아
+        enemies[i].x = next_x; // 좌우 끝칸에서 한 번 멈추지 않게 수정 //12.4 몬스터가 벽 뚫음 (임시 제거)
 		/*
          else {
             enemies[i].x = next_x;
