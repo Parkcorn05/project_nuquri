@@ -116,9 +116,7 @@ int main() {
         draw_game();
 
         if (map[stage][player_y][player_x] == 'E') {
-            mallocFree();
             stage++;
-            getMapSize();
             load_maps();
             score += 100;
             if (stage < MAX_STAGES) {
@@ -403,7 +401,7 @@ void check_collisions() {
 }
 
     for (int i = 0; i < coin_count; i++) {
-        if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
+        if (!coins[i].collected && (player_x == coins[i].x && player_y == coins[i].y) || (is_jumping != 0 && player_y + 1 == coins[i].y && player_x == coins[i].x)) {
             beep();
             coins[i].collected = 1;
             score += 20;
