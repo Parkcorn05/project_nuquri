@@ -115,10 +115,7 @@ int main() {
         draw_game();
 
         if (map[stage][player_y][player_x] == 'E') {
-            mallocFree();
-            stage++;
-            getMapSize();
-            load_maps();
+			stage++;
             score += 100;
             if (stage < MAX_STAGES) {
                 init_stage();
