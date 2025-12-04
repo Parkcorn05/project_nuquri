@@ -508,18 +508,29 @@ void mallocFree() {
 void readBanner(char* str, int height){
     FILE *file = fopen(str, "r");
     if (!file) {
-		perror("파일을 열 수 없습니다.");
-		exit(1);
+        perror("파일을 열 수 없습니다.");
+        exit(1);
     }
-    int h = 0, r = 0;
-    char C;
+    int h = 0;
     char line[50];
-	
-	while (h<height && fgets(line, sizeof(line), file)) {
-		printf(line);
-		h++;
-	}
-	fclose(file);
+
+    while (h < height && fgets(line, sizeof(line), file)) 
+    {
+        /* 안전하게 출력 */
+        printf("%s", line);
+
+        /* 만약 줄이 버퍼보다 길어 잘렸다면 나머지를 소비(출력 이미 했으므로 줄바꿈만 유지) */
+        size_t len = strlen(line);
+        if (len > 0 && line[len-1] != '\n') {
+            int c;
+            while ((c = fgetc(file)) != EOF && c != '\n') {
+                putchar(c); /* 원하면 생략 가능 — 여기서는 화면 일관성 유지 위해 출력 */
+            }
+            putchar('\n');
+        }
+        h++;
+    }
+    fclose(file);
 }
 
 // 엔딩화면
