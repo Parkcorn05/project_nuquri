@@ -538,7 +538,7 @@ void opening(){
 	
 	clrscr();
 	readBanner("banner.txt", 11);
-	printf(LF LF "         press Enter to select" LF LF);
+	printf(LF "         press Enter to select" LF LF);
 	printf("           START        EXIT");
 	
 	while(1){
@@ -549,7 +549,7 @@ void opening(){
 		
 		gotoxy(x,14);
 		printf(">");
-		gotoxy(0,16);
+		gotoxy(0,14);
 		
 		c = getch();
 		if (c==-32){ //화살표 입력을 받았을 때
