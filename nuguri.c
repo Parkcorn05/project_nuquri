@@ -533,7 +533,7 @@ void readBanner(char* str, int height){
     char line[50];
 	
 	while (h<height && fgets(line, sizeof(line), file)) {
-		printf(line);
+		printf("%s", line);
 		h++;
 	}
 	fclose(file);
