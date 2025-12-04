@@ -198,7 +198,7 @@ void draw_game() {
     printf("HP: %d\n", hp); // 플레이어 체력 표시
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
 	
-    char display_map[MAP_HEIGHT[stage]][MAP_WIDTH[stage] + 1];
+    char display_map[45][25];
     for(int y=0; y < MAP_HEIGHT[stage]; y++) {
         for(int x=0; x < MAP_WIDTH[stage]; x++) {
             char cell = map[stage][y][x];
