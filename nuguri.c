@@ -221,15 +221,15 @@ void draw_game() {
 	// line 229~238 251204 수정본
 	
 	// draw 신규 로직) 기존 한 문자씩 draw 하는것과 다르게 
-	char buffer[MAP_WIDTH[stage]+1];
-	buffer[MAP_WIDTH[stage]] = '\0';
-	
-	for (int y = 0; y < MAP_HEIGHT[stage]; y++) {
-        for(int x = 0; x < MAP_WIDTH[stage]; x++){
-			buffer[x] = display_map[y][x];
-        }
-		printf("%s\n", buffer);
+	char buffer[MAP_WIDTH[stage] + 1];
+
+    for (int y = 0; y < MAP_HEIGHT[stage]; y++) 
+    {
+        memcpy(buffer, display_map[y], MAP_WIDTH[stage]);
+        buffer[MAP_WIDTH[stage]] = '\0';
+        printf("%s\n", buffer);
     }
+
 	
 	// 0.05초마다 한번씩 연산하게 변경
 	delay(50);
