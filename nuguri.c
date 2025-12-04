@@ -359,7 +359,7 @@ void move_enemies() {
 	
     for (int i = 0; i < enemy_count; i++) {
         int next_x = enemies[i].x + enemies[i].dir;
-        if (next_x < 0 || next_x >= MAP_WIDTH[stage] || map[stage][enemies[i].y][next_x] == '#' || (enemies[i].y + 1 < MAP_HEIGHT[stage] && map[stage][enemies[i].y + 1][next_x] == ' ' && map[stage][enemies[i].y + 1][next_x] == '#')) { //떠있는 적이랑 걸어다닌 적 구분
+        if (next_x < 0 || next_x >= MAP_WIDTH[stage] || map[stage][enemies[i].y][next_x] == '#' || (enemies[i].y + 1 < MAP_HEIGHT[stage] && map[stage][enemies[i].y + 1][next_x] == ' ' && map[stage][enemies[i].y + 1][enemies[i].x] == '#')) { //떠있는 적이랑 걸어다닌 적 구분
             enemies[i].dir *= -1;
 		}
         //enemies[i].x = next_x; // 좌우 끝칸에서 한 번 멈추지 않게 수정 //12.4 몬스터가 벽 뚫음 (임시 제거)
@@ -401,7 +401,7 @@ void check_collisions() {
 }
 
     for (int i = 0; i < coin_count; i++) {
-        if (!coins[i].collected && (player_x == coins[i].x && player_y == coins[i].y) || (is_jumping != 0 && player_y + 1 == coins[i].y && player_x == coins[i].x)) {
+        if (!coins[i].collected && ((player_x == coins[i].x && player_y == coins[i].y) || (is_jumping != 0 && player_y + 1 == coins[i].y && player_x == coins[i].x))) {
             beep();
             coins[i].collected = 1;
             score += 20;
