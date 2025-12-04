@@ -11,6 +11,14 @@ linux.h : 리눅스 운영체제에서 참조하기 위해 만든 헤더파일,
 
 #define LF "\n" 
 
+// 방향키 판단을 위한 define (isArrow catch 한 이후 판단)
+#define isArrow '\x1b'
+
+#define UP 'A'
+#define DOWN 'B'
+#define RIGHT 'C'
+#define LEFT 'D'
+
 // 터미널 설정
 struct termios orig_termios;
 
@@ -22,6 +30,7 @@ int getch(); // linux/MacOS에서 활용하기 위한 getch 함수 구현
 int kbhit(); // linux/MacOS에서 활용하기 위한 kbhit 함수 구현
 void gotoxy(int x, int y); // 커서위치를 이동하는 함수
 void beep(); // 비프음을 출력하는 함수
+void ifWinSetUTF8(); // 윈도우 환경이면 UTF8을 사용하도록 하는 함수
 
 void clrscr() {
     printf("\x1b[2J\x1b[1;1H"); // ANSI 이스케이프 함수로 화면 클리어하고 1열 1행으로 커서 이동.
@@ -100,4 +109,8 @@ int kbhit() {
 void beep(){
     printf("\a");
     fflush(stdout);
+}
+
+void ifWinSetUTF8(){
+	return;
 }
