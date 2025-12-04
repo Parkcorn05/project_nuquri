@@ -21,6 +21,7 @@ void enable_raw_mode(); // RAW모드 활성화
 int getch(); // linux/MacOS에서 활용하기 위한 getch 함수 구현
 int kbhit(); // linux/MacOS에서 활용하기 위한 kbhit 함수 구현
 void gotoxy(int x, int y); // 커서위치를 이동하는 함수
+void beep(); // 비프음을 출력하는 함수
 
 void clrscr() {
     printf("\x1b[2J\x1b[1;1H"); // ANSI 이스케이프 함수로 화면 클리어하고 1열 1행으로 커서 이동.
@@ -94,4 +95,9 @@ int kbhit() {
         return 1;
     }
     return 0;
+}
+
+void beep(){
+    printf("\a");
+    fflush(stdout);
 }
