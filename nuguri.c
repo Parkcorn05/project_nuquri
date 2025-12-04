@@ -202,7 +202,7 @@ void init_stage() {
 // 게임 화면 그리기 (251203 수정 완)
 void draw_game() {
 	if(DEBUGGING) DBG("draw_game(); started");
-	if(DEBUGGING) delay(30);
+	if(DEBUGGING) delay(300);
     delay(150);  //속도 조절
     clrscr();
     printf("Stage: %d | Score: %d\n", stage + 1, score);
@@ -594,8 +594,15 @@ void DBG(char* str){
 	return;
 }
 
-// 비프음 출력 (printf(\a)로 통일(모든 os에서 동작함.))
-void beep() {
-    printf("\a");
-    fflush(stdout);
-}
+// 따로 운영체제별 분리 필요할 것으로 보임
+void beep(void) {
+    #ifdef _WIN32
+        //윈도우
+        Beep(750, 100);
+    #else
+        //리눅스
+        printf("\a");
+        fflush(stdout);
+    #endif
+    }
+
